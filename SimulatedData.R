@@ -1,17 +1,19 @@
 setwd("d:\\Data\\GitHub\\randomwa")
-# source("d:\\Data\\R_Libraries\\People\\Functions\\Functions.r")
-# source("Functions.r")
-library(vegan)
 library(rioja)
 library(compas)
+source("randomWA_SJ.r")
 source("CorrelateXY.r")
 
-make.core <- function(n, x=50, y=20, effect=40) {
+make.core <- function(n, x1=50, x2=20, effect=40, nCore=100) {
+# generate environmental data for a core with 2 gradients
+# x1 & x2 = values of environmental variable (x1=constant, x2=signal)
+# nCore= number of samples  
+# effect = size of effect (ie. environmnetal signal) in x2
    xd <- density(sqrt(rlnorm(10000)), n=nCore)
    mx <- max(xd$y)
-   xdd.x <- round((xd$y / mx * effect) / 2) * 2 + y
-   xdd.y <- rep(x, times=length(xdd.x))
-   xdd <- cbind(GRAD1=xdd.y, GRAD2=xdd.x)
+   xdd.x2 <- round((xd$y / mx * effect) / 2) * 2 + x2
+   xdd.x1 <- rep(x1, times=length(xdd.x2))
+   xdd <- cbind(GRAD1=xdd.x1, GRAD2=xdd.x2)
    xdd
 }
 
@@ -25,6 +27,9 @@ make.mix <- function(inc) {
 }
 
 sim <- function(nsam=200, nsp=c(50, 50, 50), core=make.core(100, 50, 20), corr=0.0, G1.range=c(0, 100), G2.range=c(0, 100)) {
+# generate simulated species
+# nsp = vector of 3 integers giving number of taxa with response to both gradients, gradient 1 & gradient 2 respectively
+#corr = correlation between gradient 1 & 2
    nCore <- nrow(core)
    rr <- mvtunif(nsam, corr = corr)
    G2.r <- diff(G2.range)
@@ -93,7 +98,9 @@ plot.sim <- function(simul, nTaxa=30) {
    VI1.names <- rownames(rWA1$VI)
    VI2.names <- rownames(rWA2$VI)
    plot(rWA1)
+   title("Gradient 1")
    plot(rWA2)
+   title("Gradient 2")
    wa1.all <- WA(simul$spec, simul$env[, 1])
    wa2.all <- WA(simul$spec, simul$env[, 2])
    y1 <- simul$spec[, VI1.names[1:nTaxa]]
@@ -109,15 +116,17 @@ plot.sim <- function(simul, nTaxa=30) {
    foss1.sel <- predict(wa1.sel, simul$foss)$fit
    foss2.sel <- predict(wa2.sel, simul$foss)$fit
    plot(1:100, 1:100, type="n", ylim=c(10, 70))
-   lines(1:100, simul$core[, 1], col="red")
-   lines(1:100, foss1.all[, 1], col="red", lty=2)
-   lines(1:100, foss1.sel[, 1], col="red", lty=3)
+   lines(1:100, simul$core[, 1])
+   lines(1:100, foss1.all[, 1], lty=2)
+   lines(1:100, foss1.sel[, 1], lty=3)
+   legend("topright", c("Real", "All taxa", "Selected taxa"), lty=1:3, bg="white")
    plot(1:100, 1:100, type="n", ylim=c(10, 70))
-   lines(1:100, simul$core[, 2], col="blue")
-   lines(1:100, foss2.all[, 1], col="blue", lty=2)
-   lines(1:100, foss2.sel[, 1], col="blue", lty=3)
+   lines(1:100, simul$core[, 2])
+   lines(1:100, foss2.all[, 1], lty=2)
+   lines(1:100, foss2.sel[, 1], lty=3)
 }
 
 simul <- sim(nsp=c(50, 50, 50), corr=0.3)
 
 plot.sim(simul, nTaxa=20)
+

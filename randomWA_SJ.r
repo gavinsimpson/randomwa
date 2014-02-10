@@ -1,10 +1,3 @@
-library(rioja)
-data(SWAP)
-
-setwd("d:\\data\\GitHub\\randomwa")
-
-set.seed(1)
-
 randomWA.SJ <- function(x, ...) UseMethod("randomWA.SJ")
 
 randomWA.SJ.default <- function (spec, env, nVar, nTF=500, verbose=TRUE) {
@@ -65,8 +58,6 @@ randomWA.SJ.default <- function (spec, env, nVar, nTF=500, verbose=TRUE) {
 }
 
 
-x <- rWA
-
 plot.randomWA.SJ <- function(x) {
    nSams <- seq(10, nrow(x$VI), by=10)
    if (max(nSams) < nrow(x$VI)) {
@@ -83,25 +74,3 @@ plot.randomWA.SJ <- function(x) {
    plot(nSams, res, type="b", xlab="nTaxa", ylab="RMSE")
 }
 
-
-if (0) {
-
-VI <- randomWA.SJ(SWAP$spec, SWAP$pH, nTF=1000)
-
-y <- SWAP$spec
-x <- SWAP$pH
-
-sam <- seq(10, ncol(y), by=10)
-cnames <- rownames(VI$VI)
-
-
-for (i in 1:length(sam)) {
-   y1 <- y[, cnames[1:sam[i]]]
-   mod <- WA(y1, x)
-   res[i] <- rioja:::performance(mod)$object[1, 1]
-}
-
-
-
-
-}
