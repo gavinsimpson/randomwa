@@ -59,18 +59,19 @@ randomWA.SJ.default <- function (spec, env, nVar, nTF=500, verbose=TRUE) {
 
 
 plot.randomWA.SJ <- function(x) {
-   nSams <- seq(10, nrow(x$VI), by=10)
-   if (max(nSams) < nrow(x$VI)) {
-      nSams[length(nSams)+1] <- nrow(x$VI)
-   }
-   res <- numeric(length(nSams))
-   cnames <- rownames(x$VI)
-   for (i in 1:length(nSams)) {
-      y1 <- x$spec[, cnames[1:nSams[i]]]
-      sel <- rowSums(y1) > 0.0
-      mod <- WA(y1[sel, ], x$env[sel])
-      res[i] <- rioja:::performance(mod)$object[1, 1]
-   }
-   plot(nSams, res, type="b", xlab="nTaxa", ylab="RMSE")
+    stopifnot(require("rioja"))
+    nSams <- seq(10, nrow(x$VI), by=10)
+    if (max(nSams) < nrow(x$VI)) {
+        nSams[length(nSams)+1] <- nrow(x$VI)
+    }
+    res <- numeric(length(nSams))
+    cnames <- rownames(x$VI)
+    for (i in 1:length(nSams)) {
+        y1 <- x$spec[, cnames[1:nSams[i]]]
+        sel <- rowSums(y1) > 0.0
+        mod <- WA(y1[sel, ], x$env[sel])
+        res[i] <- rioja:::performance(mod)$object[1, 1]
+    }
+    plot(nSams, res, type="b", xlab="nTaxa", ylab="RMSE")
 }
 
