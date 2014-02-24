@@ -5,7 +5,7 @@ randomWA.SJ.default <- function (spec, env, nVar, nTF=500, verbose=TRUE) {
    x <- as.matrix(env)
    nsam <- nrow(y)
    nsp <- ncol(spec)
-   if (missing(nVar))   
+   if (missing(nVar))
       nVar <- max(as.integer(nsp/3), 1)
    res <- matrix(ncol=nsp, nrow=nTF)
    colnames(res) <- colnames(y)
@@ -18,7 +18,7 @@ randomWA.SJ.default <- function (spec, env, nVar, nTF=500, verbose=TRUE) {
       if (verbose)
           setTxtProgressBar(pb, i)
       sel.sp <- sample.int(nsp, nVar)
-      # bootstrap and test set sample indices      
+      # bootstrap and test set sample indices
       boot <- sample.int(nsam, replace=TRUE)
       test <- setdiff(1:nsam, boot)
       x.b <- x[boot]
@@ -48,7 +48,7 @@ randomWA.SJ.default <- function (spec, env, nVar, nTF=500, verbose=TRUE) {
       }
    }
    SumErr <- colSums(res, na.rm=TRUE)
-   nTree <- colSums(!is.na(res)) 
+   nTree <- colSums(!is.na(res))
    VI <- SumErr / nTree
    names(VI) <- colnames(y)
    VI <- data.frame(VI=sort(VI, decreasing=TRUE))
