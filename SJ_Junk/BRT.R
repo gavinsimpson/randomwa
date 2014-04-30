@@ -50,8 +50,6 @@ mod1 <- gbm(env ~., data=spec3, distribution="gaussian", cv.folds=10, n.trees=50
 rioja:::.rmse(env - predict(mod1))
 rioja:::.rmse(env - mod1$cv.fitted)
 
-
-
 system.time(mod1a <- gbm(env ~., data=spec3, distribution="gaussian", n.trees=4000, verbose=FALSE, shrinkage=0.005, interaction.depth=105, n.cores=8))
 
 
