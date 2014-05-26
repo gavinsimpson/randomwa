@@ -1,11 +1,12 @@
 setwd("d:\\Data\\GitHub\\randomwa")
 library(rioja)
 source("randomWA_SJ.r")
-
+library(gbm)
 library(doParallel)
 registerDoParallel(cores=8)
 
 load("data/DK_Example.rData")
+Pb210 <- read.csv("data/RF55_210pb.csv")
 
 DK.wa.all <- WA(sqrt(DK.spp), DK.env$Depth)
 DK.wa.all.cv <- crossval(DK.wa.all, cv.method="lgo")
@@ -24,6 +25,18 @@ spp.sel <- rownames(rML$VI)[1:rML2]
 DK.ml.sel <- MLRC(DK.spp[, spp.sel]/100, DK.env$Depth)
 DK.ml.sel.cv <- crossval(DK.ml.sel, cv.method="lgo")
 
+calcLambda <- function(y, x) {
+  ord0 <- rda(sqrt(y))
+  eig1 <- ord0$CA$eig[1] / ord0$tot.chi
+  ord1 <- rda(sqrt(y) ~ x)
+  eig2 <- ord1$CCA$eig[1] / ord1$tot.chi
+  eig3 <- ord1$CA$eig[1] / ord1$tot.chi
+  c(eig1, eig2, eig3)  
+}
+
+eig <- calcLambda(DK.spp, DK.env$Depth)
+eig[2]/eig[3]
+
 DK.wa.all.cv
 DK.wa.sel.cv
 DK.ml.all.cv
@@ -33,6 +46,7 @@ DK.brt <- gbm(DK.env$Depth ~., data=DK.spp, distribution="gaussian", cv.folds=10
 
 summary(DK.brt)
 rioja:::.rmse(DK.brt$cv.fitted-DK.env$Depth)
+rioja:::.r2(DK.brt$cv.fitted, DK.env$Depth)
 
 Depth.wa.all <- predict(DK.wa.all, sqrt(DK.core))$fit[, 1]^2
 Depth.wa.sel <- predict(DK.wa.sel, sqrt(DK.core))$fit[, 1]^2
@@ -46,10 +60,23 @@ recon <- data.frame(wa.all=Depth.wa.all, ml.all=Depth.ml.all, wa.sel=Depth.wa.se
 #DK.core <- DK.core[DK.depths < 81, ]
 DK.depths <- apply(cbind(as.integer(substring(rownames(DK.core), 1, 2)), as.integer(substring(rownames(DK.core), 4, 5))), 1, mean)
 
-r <- range(recon)
 
-plot(DK.depths, DK.depths, type="n", xlab="Core Depth (cm)", ylab="Water depth (m)", ylim=r, xlim=c(80, 0))
-lapply(1:5, function(x) lines(DK.depths, recon[, x], col=x))
-legend("topleft", as.character(1:5), lty=1, col=1:5)
+with(Pb210, plot(Depth, Age, xlim=c(0, 90), ylim=c(1600, 2000)))
+
+mod.210 <- with(Pb210, approx(Depth, Age, xout=DK.depths))
+
+mod.ss <- with(Pb210, smooth.spline(Depth, Age, df=4))
+ages <- predict(mod.ss, DK.depths)
+with(ages, lines(x, y))
+ages
+
+save(list=c("DK.depths", "ages", "recon"), file="DKplot.rData")
+
+
+r <- range(recon)
+ltext <- c("Simple WA", "Reduced species WA", "MLRC", "Reduced species MLRC", "BRT")
+plot(DK.depths, DK.depths, type="n", xlab="Core Depth (cm)", ylab="Diatom-inferred Water depth (m)", ylim=r, xlim=c(80, 0), las=1)
+lapply(1:5, function(x) lines(DK.depths, recon[, x], lty=x))
+legend("topleft", ltext, lty=1:5)
 
 

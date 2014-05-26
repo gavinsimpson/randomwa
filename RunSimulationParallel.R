@@ -3,7 +3,6 @@ source("SimulatedData.R")
 
 library(foreach)
 
-
 tot.nsp <- 100 # total number of species in training set
 nSim <- 20  # number of simulated datasets for each 'experiment'
 method = "BT"  # TF method (either WA, BT or RC)
@@ -50,12 +49,59 @@ effectsC <- c(40, 40, 40, 60,
              20, 60, 20, 60 )
 effects <- matrix(effectsC, byrow=TRUE, ncol=4)
 effects <- effects[6:8, , drop=FALSE]
+#effects <- effects[8, , drop=FALSE]
+
 #corrs <- 0.3
-#nspp <- nspp[4:5, ]
+#nspp <- nspp[6, , drop=FALSE]
 
 nMod <- nrow (nspp)
 nCorrs <- length(corrs)
 nSim2 <- nMod * nCorrs
+
+
+resNT <- matrix(nrow=50, ncol=9)
+
+for (i in 1:50) {
+
+simul <- sim(nsp=c(0, 50, 50), core=make.core(effect1=c(20, 60), effect2=c(20, 60)), corr=0.0, noiseS=c(0.1, 0.1, 0.1), noiseF=c(0.5, 0.5, 0.5))
+simul$spec <- decostand(simul$spec, method="total")
+simul$foss <- decostand(simul$foss, method="total")
+tmp <- do.sim(simul, "WA", nTaxa=20, nTF=1000, plotit=TRUE, check.data=FALSE)
+
+nT <- tmp$nSam
+VI.names <- rownames(tmp$rWA1$VI)
+tmp2 <- regexpr("\\.", VI.names) < 0  # logical for real V1 / V2
+nsp <- length(VI.names)
+nms <- colnames(tmp$spec)
+
+VI.taxa <- VI.names[1:nT]
+
+tmpX <- setdiff(nms, VI.taxa)
+tmp3 <- regexpr("\\.", tmpX) < 0  
+
+VI.missed <- tmpX[tmp3]
+
+tmp3 <- regexpr("\\.", VI.taxa) > 0  
+VI.wrong <- VI.taxa[tmp3]
+
+mt <- match(VI.names[1:nT], colnames(tmp$spec))
+
+n1 <- length(VI.missed)
+n2 <- length(VI.wrong)
+m1 <- sum(apply(tmp$spec[, VI.missed, drop=FALSE], 2, max) > 0.01)
+m2 <- sum(apply(tmp$spec[, VI.wrong, drop=FALSE], 2, max) > 0.01)
+m3 <- sum(apply(tmp$spec[, VI.wrong, drop=FALSE], 2, max) > 0.05)
+m4 <- sum(apply(tmp$spec[, VI.wrong, drop=FALSE], 2, max) > 0.1)
+resNT[i, ] <- c(nT, sum(tmp2), sum(tmp2[1:nT]), n1, n2, m1, m2, m3, m4)
+flush.console()
+print (i)
+
+#apply(tmp$spec, 2, max)
+}
+
+boxplot (resNT)
+
+apply(resNT, 2, function(x) { c(mean(x), sd(x))})
 
 do.sim.par <- function(method="WA", addENoise=FALSE, ef1, ef2) {
   source("randomWA_SJ.r")

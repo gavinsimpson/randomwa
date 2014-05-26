@@ -149,7 +149,7 @@ do.sim <- function(simul, fun, nTaxa=20, nTF=500, plotit=TRUE, verbose=TRUE, che
     plot(1:100, 1:100, type="n", ylim=c(10, 70))
     lines(1:100, simul$core[, 2])
   }
-  invisible(list(foss=foss, perf=perf, perf2=perf2, core=simul$core, rWA1=rWA1, nSam=nSam))
+  invisible(list(foss=foss, spec=simul$spec, perf=perf, perf2=perf2, core=simul$core, rWA1=rWA1, nSam=nTaxa))
 }
 
 do.sim.brt <- function(simul, ...) {
