@@ -37,7 +37,7 @@ surf.NW.sel <- surf.NW[, spp.sel]
 ord.NW <- rda(sqrt(surf.NW.sel) ~ TP + NO3 + SiO2 + pH + Alk + SO4 + Cond + Z, data=envT.NW, na.action=na.exclude)
 mm <- Merge(surf.NW.sel, knud, join="leftouter", split=TRUE)
 sc <- predict(ord.NW, newdata=sqrt(mm$knud), type="wa", scaling=2)
-plot(ord.NW.sel, scaling=2, display=c("sites", "bp"), type="n", xlab="", ylab="", las=1, xlim=c(-2, 2.1))
+plot(ord.NW, scaling=2, display=c("sites", "bp"), type="n", xlab="", ylab="", las=1, xlim=c(-2, 2.1))
 scB <- scores(ord.NW, display="bp") * 2
 points(ord.NW, col="grey", scaling=2, cex=.6, pch=19)
 arrows(0, 0, scB[, 1], scB[, 2], length=0.05)
