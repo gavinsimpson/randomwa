@@ -70,7 +70,7 @@ ages <- predict(mod.ss, DK.depths)
 with(ages, lines(x, y))
 ages
 
-save(list=c("DK.depths", "ages", "recon"), file="DKplot.rData")
+save(list=c("DK.depths", "ages", "recon"), file="data\\DKplot.rData")
 
 
 r <- range(recon)

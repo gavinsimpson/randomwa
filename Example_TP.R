@@ -138,7 +138,7 @@ pred5 <- predict(mod.NW.brt, mm$core)
 pred <- 10^cbind(pred1, pred2, pred3, pred4, pred5)
 age <- as.numeric(rownames(core))
 
-save(list=c("pred", "age", "knud.mon"), file="TPplot.rData")
+save(list=c("pred", "age", "knud.mon"), file="data\\TPplot.rData")
 ltext <- c("Simple WA", "Reduced species WA", "MLRC", "Reduced species MLRC", "BRT", "Monitored")
 ytxt <- expression(paste("Diatom-inferred TP (", mu, gl^-1, ")"))
 plot(age, pred[, 1], type="n", ylim=c(25, 110), log="y", las=1, ylab=ytxt, xlab="Age")  

@@ -9,7 +9,7 @@ par(tcl=-0.4)
 ad1 <- -0.13
 ad2 <- -0.5
 
-load("DKplot.rData")
+load("data\\DKplot.rData")
 r <- range(recon)
 ltext <- c("Simple WA", "Reduced species WA", "MLRC", "Reduced species MLRC", "BRT")
 plot(DK.depths, DK.depths, type="n", xlab="Age (yr BP)", ylab="Diatom-inferred Water depth (m)", ylim=r, xlim=c(1750, 2000), las=1)
@@ -18,7 +18,7 @@ mtext("(a)", side=3, adj=ad1, line=ad2)
 
 #legend("topleft", ltext, lty=1:5)
 
-load("TPplot.rData")
+load("data\\TPplot.rData")
 ltext <- c("Simple WA", "Reduced species WA", "MLRC", "Reduced species MLRC", "BRT", "Monitored")
 ytxt <- expression(paste("Diatom-inferred TP (", mu, gl^-1, ")"))
 plot(age, pred[, 1], type="n", ylim=c(25, 110), log="y", las=1, ylab=ytxt, xlab="Age (yr BP)")  
@@ -29,7 +29,7 @@ mtext("(b)", side=3, adj=ad1, line=ad2)
 legend("bottomleft", "Monitored TP", lty=1, lwd=2, bty="n")
 
 
-load("RLGHplot.rData")
+load("data\\RLGHplot.rData")
 r <- range(recon)
 ages2 <- rl.ages / 1000
 ltext <- c("Simple WA", "Reduced species WA", "MLRC", "Reduced species MLRC", "BRT")
