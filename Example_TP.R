@@ -7,6 +7,16 @@ load("data/TP_Examples.rData")
 library(doParallel)
 registerDoParallel(cores=8)
 
+calcLambda <- function(y, x) {
+  ord0 <- rda(sqrt(y))
+  eig1 <- ord0$CA$eig[1] / ord0$tot.chi
+  ord1 <- rda(sqrt(y) ~ x)
+  eig2 <- ord1$CCA$eig[1] / ord1$tot.chi
+  eig3 <- ord1$CA$eig[1] / ord1$tot.chi
+  c(eig1, eig2, eig3)  
+}
+
+
 mod.US.all <- WA(sqrt(surf.US), envT.US$TP)
 mod.US.all.cv <- crossval(mod.US.all, cv.method="lgo")
 rUSWA <- randomWA.SJ(sqrt(surf.US), envT.US$TP, do.parallel=TRUE)
@@ -27,9 +37,18 @@ mod.NW.all <- WA(sqrt(surf.NW), envT.NW$TP)
 mod.NW.all.cv <- crossval(mod.NW.all, cv.method="lgo")
 rNWWA <- randomWA.SJ(sqrt(surf.NW), envT.NW$TP, do.parallel=TRUE)
 rNWWA2 <- plot(rNWWA)
+
+
+
 spp.sel <- rownames(rNWWA$VI)[1:rNWWA2]
 mod.NW.sel <- WA(sqrt(surf.NW[, spp.sel]), envT.NW$TP)
 mod.NW.sel.cv <- crossval(mod.NW.sel, cv.method="lgo")
+mod.NW.all.cv
+mod.NW.sel.cv
+
+eig <- calcLambda(sqrt(surf.NW[, ]), envT.NW$TP)
+eig[2]/eig[3]
+
 
 mod.NW.all2 <- MLRC(surf.NW/100, envT.NW$TP, n.cut=5)
 mod.NW.all2.cv <- crossval(mod.NW.all2, cv.method="lgo")
@@ -42,6 +61,8 @@ rNWML2 <- 150
 spp.sel <- rownames(rNWML$VI)[1:rNWML2]
 mod.NW.sel2 <- MLRC(surf.NW[, spp.sel]/100, envT.NW$TP)
 mod.NW.sel2.cv <- crossval(mod.NW.sel2, cv.method="lgo")
+mod.NW.all2.cv
+mod.NW.sel2.cv
 
 dd <- cbind(surf.US, TP=envT.US$TP)
 
@@ -54,6 +75,7 @@ mod.NW.brt <- gbm(envT.NW$TP ~., data=surf.NW, distribution="gaussian", cv.folds
 
 summary(mod.NW.brt)
 rioja:::.rmse(mod.NW.brt$cv.fitted-envT.NW$TP)
+rioja:::.r2(mod.NW.brt$cv.fitted, envT.NW$TP)
 
 mod.US.all.cv
 mod.US.sel.cv
@@ -102,4 +124,44 @@ for (i in 1:5) {
 }
 
 dev.off()
+
+# Just Knud So
+
+
+core <- cores[[3]]
+pred1 <- predict(mod.NW.all, sqrt(core))$fit[, 1]
+pred2 <- predict(mod.NW.sel, sqrt(core))$fit[, 1]
+pred3 <- predict(mod.NW.all2, core/100)$fit[, 1]
+pred4 <- predict(mod.NW.sel2, core/100)$fit[, 1]
+mm <- Merge(surf.NW, core, join="leftouter", split=TRUE)
+pred5 <- predict(mod.NW.brt, mm$core)
+pred <- 10^cbind(pred1, pred2, pred3, pred4, pred5)
+age <- as.numeric(rownames(core))
+
+save(list=c("pred", "age", "knud.mon"), file="TPplot.rData")
+ltext <- c("Simple WA", "Reduced species WA", "MLRC", "Reduced species MLRC", "BRT", "Monitored")
+ytxt <- expression(paste("Diatom-inferred TP (", mu, gl^-1, ")"))
+plot(age, pred[, 1], type="n", ylim=c(25, 110), log="y", las=1, ylab=ytxt, xlab="Age")  
+lapply(1:5, function(x) lines(age, pred[, x], lty=x))
+points(max(age), 25, pch=19, cex=2) # current value
+with(knud.mon, lines(Age, TP1.1, lwd=2))
+legend("bottomleft", ltext, lty=c(1:5, 1), lwd=c(1,1,1,1,1,2))
+
+stop()
+# test taxon selection using randomWA vs. taxon significance using GAMS
+
+rNWWA <- randomWA.SJ(sqrt(surf.NW), envT.NW$TP, do.parallel=TRUE, nTF=2000)
+rNWWA2 <- plot(rNWWA)
+NW.sig <- read.csv("D:\\Data\\R_Libraries\\People\\TP_Paper\\NWSigAll.csv", row.names=1)
+NW.sig <- cbind(NW.sig, sp.summ(spec3))
+VI.names <- rownames(rNWWA$VI)
+nT <- rNWWA2
+nT.sel <- VI.names[1:nT]
+nT.sel <- VI.names %in% nT.sel
+mt <- match(VI.names, rownames(NW.sig))
+resXX <- cbind(NW.sig[na.omit(mt), ], VI.names=VI.names[!is.na(mt)], nT.sel =nT.sel[!is.na(mt)])
+with(resXX, table(res.TP < 0.05, nT.sel))
+with (resXX, plot(N2, Max.abun, log="xy", pch=c(19, 1)[nT.sel+1], col=(res.TP > 0.05)+1))
+boxplot(N2 ~ (res.TP < 0.05) + nT.sel, data=resXX, varwidth=TRUE)
+boxplot(Max.abun ~ (res.TP < 0.05) + nT.sel, data=resXX, varwidth=TRUE)
 
